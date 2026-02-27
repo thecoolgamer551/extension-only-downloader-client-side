@@ -1,0 +1,19 @@
+#yt-dl-assist-btn {
+    transition: all 0.2s ease-in-out;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+#yt-dl-assist-btn:hover {
+    background-color: rgba(255, 0, 0, 0.2) !important;
+    border-color: #f00 !important;
+    color: #f00 !important;
+    transform: scale(1.05);
+}
+
+#yt-dl-assist-btn:active {
+    transform: scale(0.95);
+}
+
+#yt-dl-assist-btn svg {
+    margin-right: 6px;
+}

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YT Download Assist</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f00;
+            --bg-dark: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent: #3b82f6;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: #f1f5f9;
+            margin: 0;
+            padding: 20px;
+            width: 360px;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-img {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+            background: linear-gradient(90deg, #fff, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .settings-toggle {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .settings-toggle:hover {
+            background: var(--glass-border);
+            transform: rotate(45deg);
+        }
+
+        .card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .video-info {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        select,
+        input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 10px;
+            color: white;
+            font-family: inherit;
+            font-size: 0.85rem;
+            box-sizing: border-box;
+        }
+
+        select:focus,
+        input:focus {
+            border-color: var(--accent);
+            outline: none;
+        }
+
+        .grid-half {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button.download-btn {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 8px;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        button.download-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+        }
+
+        button.download-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button.download-btn:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        button.secondary-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .status-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+
+        .dot.online {
+            background: #10b981;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-group">
+                <img src="icon.png" class="logo-img" alt="logo">
+                <h1>YT Assist</h1>
+            </div>
+            <div id="settings-toggle" class="settings-toggle">
+                <svg width="16" height="16" fill="white" viewBox="0 0 16 16">
+                    <path
+                        d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="card">
+            <!-- Offline View (Shown when backend disconnected) -->
+            <div id="offline-view" class="view">
+                <div style="text-align: center; padding: 10px 0;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🔌</div>
+                    <div class="label" style="color: #ef4444; font-size: 1rem;">System Offline</div>
+                    <p style="font-size: 0.85rem; color: #94a3b8; margin: 10px 0 20px;">The backend service is not
+                        running. You need to install and start it to download videos.</p>
+                    <button id="setup-now-btn" class="download-btn" style="width: 100%; margin-top: 10px;">
+                        <span>Download Setup Tool</span>
+                    </button>
+                    <p style="font-size: 0.7rem; color: #64748b; margin-top: 15px;">Installs to %APPDATA%, unzips
+                        FFmpeg, and sets up Auto-Start.</p>
+                </div>
+            </div>
+
+            <div id="main-view" class="view">
+                <div id="video-info" class="video-info">Analyzing video...</div>
+
+                <div class="grid-half">
+                    <div>
+                        <div class="label">Quality</div>
+                        <select id="quality-select">
+                            <option value="best">Best</option>
+                            <option value="1080p">1080p</option>
+                            <option value="720p">720p</option>
+                            <option value="480p">480p</option>
+                            <option value="360p">360p</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="label">Format</div>
+                        <select id="format-select">
+                            <option value="mp4">MP4</option>
+                            <option value="mkv">MKV</option>
+                            <option value="webm">WebM</option>
+                            <option value="mp3">MP3 (Audio)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="progress-container" style="display: none; margin-top: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span class="label" style="font-size: 0.7rem;">Downloading...</span>
+                        <span id="progress-percent" style="font-size: 0.75rem; color: #94a3b8;">0%</span>
+                    </div>
+                    <div
+                        style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                        <div id="progress-bar"
+                            style="width: 0%; height: 100%; background: var(--accent); transition: width 0.3s ease;">
+                        </div>
+                    </div>
+                </div>
+
+                <button id="download-btn" class="download-btn" disabled>
+                    <div class="spinner" id="spinner"></div>
+                    <span id="btn-text">Download Clip</span>
+                </button>
+            </div>
+
+            <div id="settings-view" class="view">
+                <div>
+                    <div class="label">Download Folder</div>
+                    <input type="text" id="path-input" placeholder="C:\Videos">
+                </div>
+                <button id="save-settings-btn" class="secondary-btn" style="margin-top: 10px;">Apply Settings</button>
+                <div style="border-top: 1px solid var(--glass-border); margin-top: 20px; padding-top: 15px;">
+                    <div class="label">Support Tools</div>
+                    <div class="grid-half" style="margin-top: 8px;">
+                        <button id="dl-setup-btn" class="secondary-btn"
+                            style="background: #1e293b; font-size: 0.7rem;">Update Setup</button>
+                        <button id="dl-backend-btn" class="secondary-btn"
+                            style="background: #1e293b; font-size: 0.7rem;">Update Backend</button>
+                    </div>
+                    <button id="shutdown-btn" class="secondary-btn"
+                        style="background: #450a0a; color: #fca5a5; margin-top: 12px; width: 100%;">Stop
+                        Backend</button>
+                </div>
+                <button id="back-btn" class="secondary-btn"
+                    style="background: transparent; color: #94a3b8; border: 1px solid var(--glass-border); margin-top: 15px;">Return</button>
+            </div>
+        </div>
+
+        <div class="status-container">
+            <div id="status-dot" class="dot"></div>
+            <span id="status-text">Backend Offline</span>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+
+</html>
