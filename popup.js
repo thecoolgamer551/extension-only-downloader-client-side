@@ -1,3 +1,5 @@
+const CLOUD_API_URL = 'https://extension-only-downloader-server-side-production.up.railway.app';
+
 document.addEventListener('DOMContentLoaded', async () => {
     // Elements
     const downloadBtn = document.getElementById('download-btn');
@@ -18,78 +20,59 @@ document.addEventListener('DOMContentLoaded', async () => {
     const progressBar = document.getElementById('progress-bar');
     const progressPercent = document.getElementById('progress-percent');
 
-    // Settings elements
-    const serverUrlInput = document.getElementById('server-url-input');
-    const saveSettingsBtn = document.getElementById('save-settings-btn');
-
-    // 1. Load Server URL from Storage
-    chrome.storage.local.get(['apiUrl'], (res) => {
-        if (res.apiUrl) {
-            serverUrlInput.value = res.apiUrl;
-            checkCloudStatus(res.apiUrl);
-        } else {
-            statusText.innerText = 'Go to Settings and enter your Private API URL!';
-        }
-    });
+    // 1. Initial Connect check
+    checkCloudStatus();
+    setInterval(checkCloudStatus, 10000); // Check every 10s while popup open
 
     // 2. Status Check function
-    async function checkCloudStatus(url) {
+    async function checkCloudStatus() {
         try {
-            const cleanUrl = url.replace(/\/$/, '');
-            const response = await fetch(`${cleanUrl}/status`);
+            const response = await fetch(`${CLOUD_API_URL}/status`);
             if (response.ok) {
                 statusDot.classList.add('online');
-                statusText.innerText = 'Cloud Engine Online';
+                statusText.innerText = 'Connected: Zero-Config Cloud Engine Ready';
                 downloadBtn.disabled = false;
                 return true;
             }
         } catch (e) {
             statusDot.classList.remove('online');
-            statusText.innerText = 'Cloud Engine Offline';
+            statusText.innerText = 'Cloud Engine Connecting... (Checking Railway Status)';
             downloadBtn.disabled = true;
         }
         return false;
     }
 
-    // 3. Save Settings
-    saveSettingsBtn.onclick = () => {
-        const url = serverUrlInput.value;
-        chrome.storage.local.set({ apiUrl: url }, () => {
-            alert('Cloud Server URL saved.');
-            checkCloudStatus(url);
-            settingsView.classList.remove('active');
-            mainView.classList.add('active');
-        });
-    };
-
-    // 4. Download listener
+    // 3. Status/Download listener
     chrome.runtime.onMessage.addListener((msg) => {
         if (msg.type === 'error') {
-            alert(`API Error: ${msg.error}`);
+            alert(`Oops: ${msg.error}`);
             setLoading(false);
         } else if (msg.type === 'done') {
             setLoading(false);
             progressBar.style.width = '100%';
-            progressPercent.innerText = 'Connected!';
+            progressPercent.innerText = 'Request Sent!';
             setTimeout(() => { progressContainer.style.display = 'none'; }, 5000);
         }
     });
 
-    // Settings Nav
+    // 4. Manual settings view navigation
     settingsToggle.onclick = () => { mainView.classList.remove('active'); settingsView.classList.add('active'); };
     backBtn.onclick = () => { settingsView.classList.remove('active'); mainView.classList.add('active'); };
 
-    // Auto-complete tab info
+    // Set tab info
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab && tab.url && (tab.url.includes('youtube.com/watch') || tab.url.includes('youtube.com/shorts'))) {
         videoInfoElement.innerText = tab.title.replace(' - YouTube', '');
+    } else {
+        videoInfoElement.innerText = 'Go to YouTube video page.';
+        downloadBtn.disabled = true;
     }
 
     downloadBtn.onclick = async () => {
         setLoading(true);
         progressContainer.style.display = 'block';
-        progressBar.style.width = '50%';
-        progressPercent.innerText = 'Handing over...';
+        progressBar.style.width = '10%';
+        progressPercent.innerText = 'Init Cloud Merge...';
 
         const [currTab] = await chrome.tabs.query({ active: true, currentWindow: true });
         chrome.runtime.sendMessage({
@@ -102,7 +85,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function setLoading(isLoading) {
         downloadBtn.disabled = isLoading;
-        btnText.innerText = isLoading ? 'Piping Stream...' : 'Download via Private Cloud';
+        btnText.innerText = isLoading ? 'Processing...' : 'Download via Private Cloud';
         spinner.style.display = isLoading ? 'block' : 'none';
+        
+        if (isLoading) {
+             progressBar.style.width = '50%';
+             progressPercent.innerText = 'Piping Stream...';
+        }
     }
 });

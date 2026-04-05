@@ -219,6 +219,15 @@
                 transform: rotate(360deg);
             }
         }
+
+        .info-card {
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            text-align: left;
+        }
     </style>
 </head>
 
@@ -231,8 +240,7 @@
             </div>
             <div id="settings-toggle" class="settings-toggle">
                 <svg width="16" height="16" fill="white" viewBox="0 0 16 16">
-                    <path
-                        d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z" />
+                    <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13a6 6 0 1 1 0-12 6 6 0 0 1 0 12zM8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3.5a.5.5 0 0 1-.5-.5v-4A.5.5 0 0 1 8 4z"/>
                 </svg>
             </div>
         </div>
@@ -255,7 +263,7 @@
                     <div>
                         <div class="label">Format</div>
                         <select id="format-select">
-                            <option value="mp4">MP4</option>
+                            <option value="mp4" selected>MP4</option>
                             <option value="mkv">MKV</option>
                             <option value="webm">WebM</option>
                             <option value="mp3">MP3 (Audio)</option>
@@ -266,7 +274,7 @@
                 <div id="progress-container" style="display: none; margin-top: 15px;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                         <span class="label" style="font-size: 0.7rem;">Cloud Handover...</span>
-                        <span id="progress-percent" style="font-size: 0.75rem; color: #94a3b8;">0%</span>
+                        <span id="progress-percent" style="font-size: 0.75rem; color: #3b82f6;">0%</span>
                     </div>
                     <div
                         style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
@@ -285,22 +293,28 @@
             <div id="settings-view" class="view">
                 <div style="text-align: center; padding: 10px 0;">
                     <div style="font-size: 2rem; margin-bottom: 10px;">☁️</div>
-                    <div class="label" style="color: #3b82f6; font-size: 1rem;">Cloud API Setup</div>
-                    <p style="font-size: 0.85rem; color: #94a3b8; margin: 10px 0 20px;">Enter the URL of your Private yt-dlp server. This allows users to download with zero setup.</p>
+                    <div class="label" style="color: #3b82f6; font-size: 1rem;">Personal Engine</div>
+                    <p style="font-size: 0.85rem; color: #94a3b8; margin: 10px 0 10px;">Your extension is pre-configured to your private Railway server.</p>
+                    
+                    <div class="info-card">
+                        <div class="label" style="color: #60a5fa; margin-bottom: 2px;">Server Status</div>
+                        <div style="font-size: 0.75rem; color: #fff;">Online & Secure</div>
+                    </div>
+
+                    <div class="info-card" style="margin-top: 8px;">
+                        <div class="label" style="color: #60a5fa; margin-bottom: 2px;">Engine</div>
+                        <div style="font-size: 0.75rem; color: #fff;">yt-dlp v2026.04.05</div>
+                    </div>
                 </div>
 
-                <div class="label">Private Server URL</div>
-                <input id="server-url-input" type="text" placeholder="https://your-api.railway.app">
-                
-                <button id="save-settings-btn" class="secondary-btn" style="margin-top: 15px; width: 100%;">Save Cloud URL</button>
                 <button id="back-btn" class="secondary-btn"
-                    style="background: transparent; color: #94a3b8; border: 1px solid var(--glass-border); margin-top: 10px; width: 100%;">Return</button>
+                    style="background: transparent; color: #94a3b8; border: 1px solid var(--glass-border); margin-top: 15px; width: 100%;">Return</button>
             </div>
         </div>
 
         <div class="status-container">
             <div id="status-dot" class="dot"></div>
-            <span id="status-text">Cloud Engine Offline</span>
+            <span id="status-text">Cloud Engine: Connecting...</span>
         </div>
     </div>
     <script src="popup.js"></script>
