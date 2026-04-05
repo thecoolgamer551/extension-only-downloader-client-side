@@ -5,190 +5,104 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mainView = document.getElementById('main-view');
     const settingsView = document.getElementById('settings-view');
     const backBtn = document.getElementById('back-btn');
-    const saveSettingsBtn = document.getElementById('save-settings-btn');
 
     const videoInfoElement = document.getElementById('video-info');
     const statusDot = document.getElementById('status-dot');
     const statusText = document.getElementById('status-text');
     const qualitySelect = document.getElementById('quality-select');
     const formatSelect = document.getElementById('format-select');
-    const pathInput = document.getElementById('path-input');
     const btnText = document.getElementById('btn-text');
     const spinner = document.getElementById('spinner');
-
-    const dlSetupBtn = document.getElementById('dl-setup-btn');
-    const dlBackendBtn = document.getElementById('dl-backend-btn');
-    const shutdownBtn = document.getElementById('shutdown-btn');
 
     const progressContainer = document.getElementById('progress-container');
     const progressBar = document.getElementById('progress-bar');
     const progressPercent = document.getElementById('progress-percent');
 
-    let isDownloading = false;
+    // Settings elements
+    const serverUrlInput = document.getElementById('server-url-input');
+    const saveSettingsBtn = document.getElementById('save-settings-btn');
 
-    async function pollProgress() {
-        if (!isDownloading) return;
-        try {
-            const res = await fetch(`${backendUrl}/progress`);
-            const data = await res.json();
-            const p = data.progress || 0;
-            progressBar.style.width = `${p}%`;
-            progressPercent.innerText = `${p.toFixed(1)}%`;
-            if (p < 100 && isDownloading) setTimeout(pollProgress, 600);
-            else if (p >= 100) {
-                isDownloading = false;
-                setLoading(false);
-                progressContainer.style.display = 'none';
-            }
-        } catch (e) { }
-    }
-
-    const offlineView = document.getElementById('offline-view');
-    const setupNowBtn = document.getElementById('setup-now-btn');
-
-    const backendUrl = 'http://localhost:3001';
-
-    // Disable quality if format is mp3
-    formatSelect.addEventListener('change', () => {
-        qualitySelect.disabled = formatSelect.value === 'mp3';
+    // 1. Load Server URL from Storage
+    chrome.storage.local.get(['apiUrl'], (res) => {
+        if (res.apiUrl) {
+            serverUrlInput.value = res.apiUrl;
+            checkCloudStatus(res.apiUrl);
+        } else {
+            statusText.innerText = 'Go to Settings and enter your Private API URL!';
+        }
     });
 
-    // 1. Backend Check
-    async function checkBackend() {
+    // 2. Status Check function
+    async function checkCloudStatus(url) {
         try {
-            const response = await fetch(`${backendUrl}/status`);
-            const data = await response.json();
-            if (data.status === 'running') {
+            const cleanUrl = url.replace(/\/$/, '');
+            const response = await fetch(`${cleanUrl}/status`);
+            if (response.ok) {
                 statusDot.classList.add('online');
-                statusText.innerText = 'System Online';
-                pathInput.value = data.config.downloadPath;
-
-                mainView.classList.add('active');
-                offlineView.classList.remove('active');
-
-                // Check for active download
-                const progRes = await fetch(`${backendUrl}/progress`);
-                const progData = await progRes.json();
-                if (progData.active) {
-                    isDownloading = true;
-                    progressContainer.style.display = 'block';
-                    progressBar.style.width = `${progData.progress}%`;
-                    progressPercent.innerText = `${progData.progress.toFixed(1)}%`;
-                    setLoading(true);
-                    pollProgress();
-                }
+                statusText.innerText = 'Cloud Engine Online';
+                downloadBtn.disabled = false;
                 return true;
             }
-        } catch (error) {
+        } catch (e) {
             statusDot.classList.remove('online');
-            statusText.innerText = 'System Offline';
-
-            mainView.classList.remove('active');
-            offlineView.classList.add('active');
-            return false;
+            statusText.innerText = 'Cloud Engine Offline';
+            downloadBtn.disabled = true;
         }
+        return false;
     }
 
-    const isOnline = await checkBackend();
-
-    // Setup Tools - Bundle download from extension itself
-    const downloadInternal = (fileName) => {
-        const url = chrome.runtime.getURL(`bin/${fileName}`);
-        chrome.downloads.download({
-            url: url,
-            filename: fileName,
-            saveAs: true
+    // 3. Save Settings
+    saveSettingsBtn.onclick = () => {
+        const url = serverUrlInput.value;
+        chrome.storage.local.set({ apiUrl: url }, () => {
+            alert('Cloud Server URL saved.');
+            checkCloudStatus(url);
+            settingsView.classList.remove('active');
+            mainView.classList.add('active');
         });
     };
 
-    setupNowBtn.onclick = () => downloadInternal('yt-assist-setup.exe');
-    dlSetupBtn.onclick = () => downloadInternal('yt-assist-setup.exe');
-    dlBackendBtn.onclick = () => downloadInternal('yt-assist-backend.exe');
-
-    shutdownBtn.onclick = async () => {
-        if (!confirm('Stop backend system?')) return;
-        try {
-            await fetch(`${backendUrl}/shutdown`, { method: 'POST' });
-            window.close();
-        } catch (e) {
-            alert('Already offline.');
+    // 4. Download listener
+    chrome.runtime.onMessage.addListener((msg) => {
+        if (msg.type === 'error') {
+            alert(`API Error: ${msg.error}`);
+            setLoading(false);
+        } else if (msg.type === 'done') {
+            setLoading(false);
+            progressBar.style.width = '100%';
+            progressPercent.innerText = 'Connected!';
+            setTimeout(() => { progressContainer.style.display = 'none'; }, 5000);
         }
-    };
+    });
 
-    // Tab Info
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab && tab.url && (tab.url.includes('youtube.com/watch') || tab.url.includes('youtube.com/shorts'))) {
-        videoInfoElement.innerText = tab.title.replace(' - YouTube', '');
-        if (isOnline) downloadBtn.disabled = false;
-    } else {
-        videoInfoElement.innerText = 'Not a video page.';
-        downloadBtn.disabled = true;
-    }
-
+    // Settings Nav
     settingsToggle.onclick = () => { mainView.classList.remove('active'); settingsView.classList.add('active'); };
     backBtn.onclick = () => { settingsView.classList.remove('active'); mainView.classList.add('active'); };
 
-    saveSettingsBtn.onclick = async () => {
-        const downloadPath = pathInput.value;
-        try {
-            const response = await fetch(`${backendUrl}/settings`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ downloadPath })
-            });
-            if (response.ok) { alert('Saved!'); backBtn.click(); }
-        } catch (error) { alert('Connection error.'); }
-    };
-
+    // Auto-complete tab info
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab && tab.url && (tab.url.includes('youtube.com/watch') || tab.url.includes('youtube.com/shorts'))) {
+        videoInfoElement.innerText = tab.title.replace(' - YouTube', '');
+    }
 
     downloadBtn.onclick = async () => {
-        // Instant UI feedback
-        isDownloading = true;
         setLoading(true);
         progressContainer.style.display = 'block';
-        progressBar.style.width = '2%'; // Start with a tiny bit to show it's alive
-        progressPercent.innerText = '0.0%';
-
-        pollProgress();
+        progressBar.style.width = '50%';
+        progressPercent.innerText = 'Handing over...';
 
         const [currTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-        try {
-            const response = await fetch(`${backendUrl}/download`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    url: currTab.url,
-                    quality: qualitySelect.value,
-                    format: formatSelect.value
-                })
-            });
-
-            if (response.ok) {
-                statusText.innerText = 'Success! Check your folder.';
-                progressBar.style.width = '100%';
-                progressPercent.innerText = '100%';
-                setTimeout(() => {
-                    statusText.innerText = 'System Online';
-                    progressContainer.style.display = 'none';
-                }, 5000);
-            } else {
-                const data = await response.json();
-                alert(`Error: ${data.error}`);
-                progressContainer.style.display = 'none';
-            }
-        } catch (error) {
-            alert('Backend connection lost.');
-            progressContainer.style.display = 'none';
-        } finally {
-            isDownloading = false;
-            setLoading(false);
-        }
+        chrome.runtime.sendMessage({
+            action: 'download_api',
+            url: currTab.url,
+            quality: qualitySelect.value,
+            format: formatSelect.value
+        });
     };
 
     function setLoading(isLoading) {
         downloadBtn.disabled = isLoading;
-        btnText.innerText = isLoading ? 'Working...' : 'Download Clip';
+        btnText.innerText = isLoading ? 'Piping Stream...' : 'Download via Private Cloud';
         spinner.style.display = isLoading ? 'block' : 'none';
     }
 });

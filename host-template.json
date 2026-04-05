@@ -1,0 +1,9 @@
+{
+  "name": "com.ytdl.assist",
+  "description": "YT-DL Assist Native Messaging Host",
+  "path": "host-runner.bat",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://%%EXTENSION_ID%%/"
+  ]
+}

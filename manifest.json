@@ -1,41 +1,30 @@
 {
     "manifest_version": 3,
     "name": "YT Download Assist",
-    "version": "1.0",
-    "description": "Educational tool for downloading YouTube videos using yt-dlp.",
+    "version": "2.0",
+    "description": "Educational tool for downloading YouTube videos using yt-dlp natively.",
     "icons": {
         "16": "icon.png",
         "48": "icon.png",
         "128": "icon.png"
     },
-    "web_accessible_resources": [
-        {
-            "resources": [
-                "bin/*.exe"
-            ],
-            "matches": [
-                "<all_urls>"
-            ]
-        }
-    ],
     "permissions": [
         "activeTab",
         "scripting",
-        "downloads"
+        "downloads",
+        "storage"
     ],
     "action": {
         "default_popup": "popup.html",
-        "default_title": "YT Download Assist",
-        "default_icon": {
-            "16": "icon.png",
-            "48": "icon.png",
-            "128": "icon.png"
-        }
+        "default_title": "YT Download Assist"
     },
     "host_permissions": [
         "*://*.youtube.com/*",
-        "http://localhost:3001/*"
+        "*://*/*"
     ],
+    "background": {
+        "service_worker": "background.js"
+    },
     "content_scripts": [
         {
             "matches": [

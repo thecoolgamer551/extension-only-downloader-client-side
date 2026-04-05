@@ -12,7 +12,7 @@ function injectDownloadButton() {
                     <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
                 </svg>
             </div>
-            <div class="yt-spec-button-shape-next__button-text-content">Download (YT-DLP)</div>
+            <div class="yt-spec-button-shape-next__button-text-content">Download (YT-DLP API)</div>
         `;
 
         downloadBtn.style.marginLeft = '8px';
@@ -28,37 +28,26 @@ function injectDownloadButton() {
             downloadBtn.style.opacity = '0.5';
             btnText.innerText = 'Initializing...';
 
-            try {
-                const response = await fetch('http://localhost:3001/download', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        url,
-                        formatPreference: 'best'
-                    })
-                });
-
-                if (response.ok) {
-                    btnText.innerText = 'Started! Check Backend';
+            chrome.runtime.sendMessage({
+                action: 'download_api',
+                url: url,
+                quality: '1080p',
+                format: 'mp4'
+            }, (response) => {
+                if (chrome.runtime.lastError || !response || !response.started) {
+                    btnText.innerText = 'Extension Error';
                     setTimeout(() => {
-                        btnText.innerText = 'Download (YT-DLP)';
+                        btnText.innerText = 'Download (YT-DLP API)';
                         downloadBtn.style.opacity = '1';
                     }, 3000);
                 } else {
-                    const data = await response.json();
-                    btnText.innerText = `Error: ${data.error.substring(0, 15)}...`;
+                    btnText.innerText = 'Started! Check Popup';
                     setTimeout(() => {
-                        btnText.innerText = 'Download (YT-DLP)';
+                        btnText.innerText = 'Download (YT-DLP API)';
                         downloadBtn.style.opacity = '1';
-                    }, 5000);
+                    }, 3000);
                 }
-            } catch (err) {
-                btnText.innerText = 'Backend Offline';
-                setTimeout(() => {
-                    btnText.innerText = 'Download (YT-DLP)';
-                    downloadBtn.style.opacity = '1';
-                }, 3000);
-            }
+            });
         });
 
         buttonContainer.appendChild(downloadBtn);

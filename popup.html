@@ -227,7 +227,7 @@
         <div class="header">
             <div class="logo-group">
                 <img src="icon.png" class="logo-img" alt="logo">
-                <h1>YT Assist</h1>
+                <h1>YT Assist Cloud</h1>
             </div>
             <div id="settings-toggle" class="settings-toggle">
                 <svg width="16" height="16" fill="white" viewBox="0 0 16 16">
@@ -238,22 +238,7 @@
         </div>
 
         <div class="card">
-            <!-- Offline View (Shown when backend disconnected) -->
-            <div id="offline-view" class="view">
-                <div style="text-align: center; padding: 10px 0;">
-                    <div style="font-size: 3rem; margin-bottom: 10px;">🔌</div>
-                    <div class="label" style="color: #ef4444; font-size: 1rem;">System Offline</div>
-                    <p style="font-size: 0.85rem; color: #94a3b8; margin: 10px 0 20px;">The backend service is not
-                        running. You need to install and start it to download videos.</p>
-                    <button id="setup-now-btn" class="download-btn" style="width: 100%; margin-top: 10px;">
-                        <span>Download Setup Tool</span>
-                    </button>
-                    <p style="font-size: 0.7rem; color: #64748b; margin-top: 15px;">Installs to %APPDATA%, unzips
-                        FFmpeg, and sets up Auto-Start.</p>
-                </div>
-            </div>
-
-            <div id="main-view" class="view">
+            <div id="main-view" class="view active">
                 <div id="video-info" class="video-info">Analyzing video...</div>
 
                 <div class="grid-half">
@@ -280,49 +265,42 @@
 
                 <div id="progress-container" style="display: none; margin-top: 15px;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span class="label" style="font-size: 0.7rem;">Downloading...</span>
+                        <span class="label" style="font-size: 0.7rem;">Cloud Handover...</span>
                         <span id="progress-percent" style="font-size: 0.75rem; color: #94a3b8;">0%</span>
                     </div>
                     <div
                         style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
                         <div id="progress-bar"
-                            style="width: 0%; height: 100%; background: var(--accent); transition: width 0.3s ease;">
+                            style="width: 50%; height: 100%; background: var(--accent); transition: width 0.3s ease;">
                         </div>
                     </div>
                 </div>
 
                 <button id="download-btn" class="download-btn" disabled>
                     <div class="spinner" id="spinner"></div>
-                    <span id="btn-text">Download Clip</span>
+                    <span id="btn-text">Download via Private Cloud</span>
                 </button>
             </div>
 
             <div id="settings-view" class="view">
-                <div>
-                    <div class="label">Download Folder</div>
-                    <input type="text" id="path-input" placeholder="C:\Videos">
+                <div style="text-align: center; padding: 10px 0;">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">☁️</div>
+                    <div class="label" style="color: #3b82f6; font-size: 1rem;">Cloud API Setup</div>
+                    <p style="font-size: 0.85rem; color: #94a3b8; margin: 10px 0 20px;">Enter the URL of your Private yt-dlp server. This allows users to download with zero setup.</p>
                 </div>
-                <button id="save-settings-btn" class="secondary-btn" style="margin-top: 10px;">Apply Settings</button>
-                <div style="border-top: 1px solid var(--glass-border); margin-top: 20px; padding-top: 15px;">
-                    <div class="label">Support Tools</div>
-                    <div class="grid-half" style="margin-top: 8px;">
-                        <button id="dl-setup-btn" class="secondary-btn"
-                            style="background: #1e293b; font-size: 0.7rem;">Update Setup</button>
-                        <button id="dl-backend-btn" class="secondary-btn"
-                            style="background: #1e293b; font-size: 0.7rem;">Update Backend</button>
-                    </div>
-                    <button id="shutdown-btn" class="secondary-btn"
-                        style="background: #450a0a; color: #fca5a5; margin-top: 12px; width: 100%;">Stop
-                        Backend</button>
-                </div>
+
+                <div class="label">Private Server URL</div>
+                <input id="server-url-input" type="text" placeholder="https://your-api.railway.app">
+                
+                <button id="save-settings-btn" class="secondary-btn" style="margin-top: 15px; width: 100%;">Save Cloud URL</button>
                 <button id="back-btn" class="secondary-btn"
-                    style="background: transparent; color: #94a3b8; border: 1px solid var(--glass-border); margin-top: 15px;">Return</button>
+                    style="background: transparent; color: #94a3b8; border: 1px solid var(--glass-border); margin-top: 10px; width: 100%;">Return</button>
             </div>
         </div>
 
         <div class="status-container">
             <div id="status-dot" class="dot"></div>
-            <span id="status-text">Backend Offline</span>
+            <span id="status-text">Cloud Engine Offline</span>
         </div>
     </div>
     <script src="popup.js"></script>
